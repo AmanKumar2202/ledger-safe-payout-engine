@@ -75,14 +75,14 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
 
+# backend/config/settings.py
 DATABASES = {
-    'default': dj_database_url.config(
-        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': '...',
+        'CONN_MAX_AGE': 60, # Keep connections open for 60 seconds
+    }
 }
-
 
 # Password validation
 
