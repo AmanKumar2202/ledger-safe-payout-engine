@@ -1,0 +1,8 @@
+django>=4.2
+djangorestframework
+psycopg2-binary
+django-environ
+celery
+redis
+django-fsm  
+drf-spectacular 
