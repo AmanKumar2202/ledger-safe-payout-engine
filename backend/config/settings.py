@@ -125,7 +125,7 @@ CELERY_TASK_SERIALIZER = 'json'
 # CORS Configuration
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173", 
+    "https://ledger-safe-payout-engine.vercel.app/", 
 ]
 
 CORS_ALLOW_HEADERS = [
