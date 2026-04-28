@@ -137,3 +137,8 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
     "idempotency-key", 
 ]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://ledger-safe-payout-engine.vercel.app",
+    "https://ledger-safe-payout-engine.onrender.com",
+]
