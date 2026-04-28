@@ -116,6 +116,13 @@ STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+broker_url = REDIS_URL
+result_backend = REDIS_URL
+
+# Silence those deprecation warnings too
+task_serializer = 'json'
+accept_content = ['json']
+result_serializer = 'json'
 # Celery Configuration
 CELERY_BROKER_URL = REDIS_URL
 CELERY_RESULT_BACKEND = REDIS_URL
@@ -138,6 +145,7 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
     "idempotency-key", 
 ]
+CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
     "https://ledger-safe-payout-engine.vercel.app",
