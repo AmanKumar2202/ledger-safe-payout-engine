@@ -118,6 +118,8 @@ REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
 broker_url = REDIS_URL
 result_backend = REDIS_URL
 
+CELERY_TASK_ALWAYS_EAGER = True
+CELERY_TASK_EAGER_PROPAGATES = True
 # Silence those deprecation warnings too
 task_serializer = 'json'
 accept_content = ['json']
