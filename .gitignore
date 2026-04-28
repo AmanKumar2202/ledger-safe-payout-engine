@@ -17,3 +17,26 @@ frontend/.vite/
 .vscode/
 .idea/
 media/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Virtual environment - NEVER commit this
+venv/
+env/
+.venv/
+ENV/
+
+# Django
+*.sqlite3
+staticfiles/
+media/
+
+# Environment variables - NEVER commit this
+.env
+.env.*
+!.env.example
