@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'merchants',
     'payouts',
+    'rest_framework',
     'corsheaders',
 ]
 
@@ -142,3 +143,9 @@ CSRF_TRUSTED_ORIGINS = [
     "https://ledger-safe-payout-engine.vercel.app",
     "https://ledger-safe-payout-engine.onrender.com",
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    )
+}
