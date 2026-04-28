@@ -110,6 +110,7 @@ USE_TZ = True
 # Static files
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Celery Configuration
 CELERY_BROKER_URL = os.getenv('REDIS_BROKER_URL')
