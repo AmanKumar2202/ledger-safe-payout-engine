@@ -147,6 +147,8 @@ CORS_ALLOW_HEADERS = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 CSRF_TRUSTED_ORIGINS = [
     "https://ledger-safe-payout-engine.vercel.app",
     "https://ledger-safe-payout-engine.onrender.com",
