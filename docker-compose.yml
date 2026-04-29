@@ -1,4 +1,5 @@
 version: '3.8'
+
 services:
   db:
     image: postgres:15
@@ -11,16 +12,21 @@ services:
 
   redis:
     image: redis:alpine
+    ports:
+      - "6379:6379"
 
-  # The API Service
   backend:
     build: ./backend
-    command: python manage.py runserver 0.0.0.0:8000
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py seed_data &&
+             python manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./backend:/app
     ports:
       - "8000:8000"
     environment:
+      - SECRET_KEY=local-docker-secret-key
       - DATABASE_URL=postgres://user:password@db:5432/playto_db
       - REDIS_URL=redis://redis:6379/0
     depends_on:
@@ -29,10 +35,11 @@ services:
 
   worker:
     build: ./backend
-    command: celery -A config worker --loglevel=info
+    command: celery -A config worker --loglevel=info --pool=solo
     volumes:
       - ./backend:/app
     environment:
+      - SECRET_KEY=local-docker-secret-key
       - DATABASE_URL=postgres://user:password@db:5432/playto_db
       - REDIS_URL=redis://redis:6379/0
     depends_on:

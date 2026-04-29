@@ -1,257 +1,224 @@
 # Playto Payout Engine
 
-A minimal payout engine that simulates how platforms handle international payments and merchant withdrawals.
-Built with a strong focus on **money integrity, concurrency control, idempotency, and correct state transitions**.
+A minimal payout engine simulating how platforms handle merchant withdrawals. Built with a focus on **money integrity, concurrency control, idempotency, and correct state transitions**.
 
 ---
 
-## 🚀 Live Demo
+## Live Demo
 
-👉 [Add your deployed URL here]
+[https://ledger-safe-payout-engine.vercel.app/](https://ledger-safe-payout-engine.vercel.app/)
 
----
-
-## 📦 Tech Stack
-
-* **Backend:** Django + Django REST Framework
-* **Database:** PostgreSQL
-* **Queue/Workers:** Celery + Redis
-* **Frontend:** React + Tailwind CSS
-* **Containerization :** Docker + docker-compose
+Backend API: [https://ledger-safe-payout-engine.onrender.com/](https://ledger-safe-payout-engine.onrender.com/)
 
 ---
 
-## 📥 Getting Started
+## Tech Stack
 
-### 1. Clone the Repository
+- **Backend:** Django 6 + Django REST Framework
+- **Database:** PostgreSQL
+- **Background Jobs:** Celery + Redis
+- **Frontend:** React + Tailwind CSS
+- **Containerisation:** Docker + docker-compose
+
+---
+
+## Local Setup
+
+### Prerequisites
+
+- Python 3.11+
+- Node 18+
+- PostgreSQL running locally
+- Redis running locally
+
+### 1. Clone
 
 ```bash
 git clone https://github.com/AmanKumar2202/ledger-safe-payout-engine.git
-cd playto-payout
+cd ledger-safe-payout-engine
 ```
 
----
-
-## ⚙️ Backend Setup
+### 2. Backend
 
 ```bash
 cd backend
-
-# Create virtual environment
 python -m venv venv
 
-# Activate virtual environment
-# Windows:
+# Windows
 .\venv\Scripts\activate
 
-# Mac/Linux:
+# Mac/Linux
 source venv/bin/activate
 
-# Install dependencies
 pip install -r requirements.txt
+```
 
-# Apply migrations
+Create `backend/.env`:
+
+```env
+SECRET_KEY=your-local-secret-key
+DATABASE_URL=postgres://postgres:password@localhost:5432/playto_payout
+REDIS_URL=redis://localhost:6379/0
+```
+
+```bash
 python manage.py migrate
-```
-
----
-
-## 🌱 Seed Data
-
-Populate the database with sample merchants and transaction history:
-
-```bash
-python manage.py flush --noinput
 python manage.py seed_data
+python manage.py setup_admin   # creates superuser for /admin
 ```
 
-This will:
+### 3. Run (3 terminals)
 
-* Create 2–3 merchants
-* Add historical credits
-* Make dashboard immediately usable
-
----
-
-## ▶️ Running the System (3 Terminals Required)
-
-### Terminal 1: Redis (Message Broker)
-
+**Terminal 1 — Redis**
 ```bash
-redis-server --port 6380
+redis-server
 ```
 
----
-
-### Terminal 2: Celery Worker
-
+**Terminal 2 — Celery Worker**
 ```bash
-python -m celery -A config worker --loglevel=info --pool=solo
+cd backend
+celery -A config worker --loglevel=info --pool=solo
 ```
 
-Handles:
-
-* Payout processing
-* Retry logic
-* Background state transitions
-
----
-
-### Terminal 3: Django API Server
-
+**Terminal 3 — Django**
 ```bash
+cd backend
 python manage.py runserver
 ```
 
-API will run at:
+API runs at `http://127.0.0.1:8000`
 
-```
-http://127.0.0.1:8000
-```
-
----
-
-## 💻 Frontend Setup
+### 4. Frontend
 
 ```bash
 cd frontend
-
 npm install
 npm run dev
 ```
 
-Frontend will run at:
-
-```
-http://localhost:5173
-```
+Frontend runs at `http://localhost:5173`
 
 ---
 
-## 🧪 Testing
+## Docker Setup
 
-Run test suite (includes concurrency & idempotency tests):
-
-```bash
-python manage.py test payouts.tests
-```
-
-Covers:
-
-* Concurrent payout requests (race condition prevention)
-* Idempotent API behavior
-* Ledger correctness
-
----
-
-## 🔑 Key Features
-
-### 1. Merchant Ledger
-
-* Append-only ledger (no mutable balance)
-* Stored in **paise (BigIntegerField)**
-* Balance derived via SQL aggregation
-
----
-
-### 2. Payout Requests
-
-* Idempotent API using `Idempotency-Key`
-* Funds are **held**, not immediately deducted
-* Duplicate requests return same response
-
----
-
-### 3. Concurrency Handling
-
-* Uses **PostgreSQL row-level locking (`SELECT FOR UPDATE`)**
-* Prevents double spending under concurrent requests
-
----
-
-### 4. Payout Processor (Async)
-
-* Runs via Celery worker
-* Simulates:
-
-  * ✅ 70% success
-  * ❌ 20% failure
-  * ⏳ 10% stuck (retry logic)
-
----
-
-### 5. Retry Logic
-
-* Retries payouts stuck > 30 seconds
-* Exponential backoff
-* Max 3 attempts → then marked failed
-
----
-
-### 6. State Machine
-
-Valid transitions:
-
-```
-PENDING → PROCESSING → COMPLETED
-PENDING → PROCESSING → FAILED
-```
-
-Invalid transitions are rejected.
-
----
-
-## 📄 EXPLAINER.md
-
-For deep technical reasoning behind:
-
-* Ledger design
-* Concurrency locking
-* Idempotency handling
-* State machine enforcement
-* AI audit decisions
-
-👉 See: `EXPLAINER.md`
-
----
-
-## 🐳 Docker Setup 
-
-Run entire system using Docker:
+Run the full stack with one command:
 
 ```bash
 docker-compose up --build
 ```
 
+This starts Django, Celery, PostgreSQL, and Redis together.
+
 ---
 
-## 📂 Project Structure
+## Seed Data
+
+```bash
+python manage.py seed_data
+```
+
+Creates 2 merchants with initial credit history so the dashboard is immediately usable.
+
+---
+
+## API Reference
+
+### Request a Payout
+
+```
+POST /api/v1/payouts/
+Idempotency-Key: <uuid>
+
+{
+  "merchant_id": 1,
+  "amount_paise": 50000
+}
+```
+
+Returns `201` on first call, `200` with same body on duplicate key.
+
+### Get Merchant Balance
+
+```
+GET /api/v1/merchants/<id>/balance/
+```
+
+### Get Payout History
+
+```
+GET /api/v1/merchants/<id>/payouts/
+```
+
+---
+
+## Tests
+
+```bash
+cd backend
+python manage.py test payouts.tests
+```
+
+Covers:
+
+- **Concurrency:** Two simultaneous 7000 paise requests against a 10000 paise balance — exactly one succeeds, exactly one debit recorded
+- **State machine:** Verifies `COMPLETED → PENDING` transition raises `ValidationError`
+
+---
+
+## Key Design Decisions
+
+### Money Integrity
+
+All amounts stored as `BigIntegerField` in paise. No `FloatField`, no `DecimalField`. Balance is never stored — always derived by `SUM(credits) - SUM(debits)` at the database level.
+
+### Concurrency
+
+`SELECT FOR UPDATE` on the merchant row serialises concurrent payout requests. No two requests can read and deduct balance simultaneously.
+
+### Idempotency
+
+`unique_together = ('merchant', 'idempotency_key')` is a database-level constraint. Duplicate keys return the original response, not a new payout.
+
+### State Machine
+
+Legal transitions only: `PENDING → PROCESSING → COMPLETED` or `FAILED`. Any other transition raises `ValidationError` before hitting the database. Fund return on failure is atomic with the state transition.
+
+### Payout Simulation
+
+Celery task simulates: 70% success, 20% failure (funds returned), 10% hang (retried with exponential backoff, max 3 attempts, then failed).
+
+---
+
+## Project Structure
 
 ```
 backend/
-  ├── payouts/
-  ├── merchants/
-  ├── config/
+  ├── config/          # Django settings, URLs, Celery config
+  ├── merchants/       # Merchant model, LedgerEntry, balance selector
+  │   └── management/commands/seed_data.py
+  ├── payouts/         # Payout model, services, tasks, tests
+  │   └── management/commands/setup_admin.py
   └── manage.py
 
 frontend/
   ├── src/
-  └── components/
+  │   ├── components/  # BalanceCard, PayoutForm, PayoutTable
+  │   ├── pages/       # Dashboard
+  │   └── api/         # API client
 
 docker-compose.yml
-README.md
+render.yaml
 EXPLAINER.md
+README.md
 ```
 
 ---
 
-## ⚠️ Important Notes
+## Admin
 
-* All monetary values are stored in **integer paise**
-* No floating point operations used
-* All critical operations wrapped in **database transactions**
-* Ledger ensures **auditability and correctness**
+```
+https://ledger-safe-payout-engine.onrender.com/admin/
+```
 
----
-
-
+Superuser created via `python manage.py setup_admin`.
